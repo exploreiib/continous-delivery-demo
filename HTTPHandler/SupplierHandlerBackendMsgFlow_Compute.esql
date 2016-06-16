@@ -1,0 +1,36 @@
+
+
+CREATE COMPUTE MODULE SupplierHandlerBackendMsgFlow_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		CALL CopyMessageHeaders();
+		DECLARE outxmlroot REFERENCE TO OutputLocalEnvironment;
+		DECLARE InPutVar REFERENCE TO InputRoot.XMLNSC.SupplierPartOrderRequest; 
+		CREATE LASTCHILD OF OutputRoot AS outxmlroot DOMAIN 'XMLNSC' NAME 'XMLNSC' ;
+		
+		SET outxmlroot.SupplierPartOrderResponse.RequestID = InPutVar.RequestID;
+		SET outxmlroot.SupplierPartOrderResponse.RequestingPartNumber = InPutVar.RequestingPartNumber;
+		SET outxmlroot.SupplierPartOrderResponse.QuantityRequested = InPutVar.QuantityRequested;
+		SET outxmlroot.SupplierPartOrderResponse.RequestingClientID = InPutVar.RequestingClientID;
+		SET outxmlroot.SupplierPartOrderResponse.UnitCost = '$300';
+		SET outxmlroot.SupplierPartOrderResponse.TotalCost = '$3000';
+		SET outxmlroot.SupplierPartOrderResponse.OrderStatus =  'Accepted';
+		SET outxmlroot.SupplierPartOrderResponse.OrderText =  'None';
+		SET OutputLocalEnvironment = InputLocalEnvironment;
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		SET OutputRoot = InputRoot;
+	END;
+END MODULE;
